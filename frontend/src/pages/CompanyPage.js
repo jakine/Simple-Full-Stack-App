@@ -9,6 +9,9 @@ function CompanyPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [inviteRole, setInviteRole] = useState("manager");
+  const [inviteTeam, setInviteTeam] = useState("");
+  const [teams, setTeams] = useState([]);
   const [members, setMembers] = useState([]);
   const [error, setError] = useState("");
 
@@ -26,6 +29,11 @@ function CompanyPage() {
     apiList("/companies/members/")
       .then(setMembers)
       .catch((err) => setError(err.message));
+    if (company.role === "owner") {
+      apiList("/teams/")
+        .then(setTeams)
+        .catch((err) => setError(err.message));
+    }
   }, [company]);
 
   async function createCompany(event) {
@@ -54,9 +62,18 @@ function CompanyPage() {
     event.preventDefault();
     setError("");
     try {
-      await api("/companies/members/", { method: "POST", body: { email, password } });
+      await api("/companies/members/", {
+        method: "POST",
+        body: {
+          email,
+          password,
+          role: inviteRole,
+          team: inviteRole === "team_lead" && inviteTeam ? Number(inviteTeam) : null,
+        },
+      });
       setEmail("");
       setPassword("");
+      setInviteTeam("");
       setMembers(await apiList("/companies/members/"));
     } catch (err) {
       setError(err.message);
@@ -102,7 +119,10 @@ function CompanyPage() {
 
       {company?.role === "owner" && (
         <form onSubmit={invite} style={styles.card}>
-          <h2 style={{ marginTop: 0 }}>Invite a manager</h2>
+          <h2 style={{ marginTop: 0 }}>Invite someone</h2>
+          <p style={{ marginTop: 0 }}>
+            Managers run everything. Team leads see the projects their teams work on, fill reports, and move their team's tasks.
+          </p>
           <div style={styles.row}>
             <Field label="Email">
               <input style={styles.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -110,6 +130,24 @@ function CompanyPage() {
             <Field label="Password for a new account">
               <input style={styles.input} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </Field>
+            <Field label="Role">
+              <select style={styles.input} value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
+                <option value="manager">Manager</option>
+                <option value="team_lead">Team lead</option>
+              </select>
+            </Field>
+            {inviteRole === "team_lead" && (
+              <Field label="Leads team">
+                <select style={styles.input} value={inviteTeam} onChange={(e) => setInviteTeam(e.target.value)}>
+                  <option value="">Link later</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.number} · {team.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
             <button style={styles.button} type="submit">
               Invite
             </button>
@@ -123,7 +161,7 @@ function CompanyPage() {
           <ul>
             {members.map((member) => (
               <li key={member.id}>
-                {member.email} · {member.role}
+                {member.email} · {member.role === "team_lead" ? "team lead" : member.role}
               </li>
             ))}
           </ul>

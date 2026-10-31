@@ -19,6 +19,11 @@ class MembershipSerializer(serializers.ModelSerializer):
 class InviteSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    role = serializers.ChoiceField(
+        choices=[Membership.Role.MANAGER, Membership.Role.TEAM_LEAD],
+        default=Membership.Role.MANAGER,
+    )
+    team = serializers.IntegerField(required=False, allow_null=True)
 
 
 class SwitchSerializer(serializers.Serializer):

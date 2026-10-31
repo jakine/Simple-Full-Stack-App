@@ -14,10 +14,11 @@ from companies.serializers import (
 from companies.services import (
     COMPANY_SESSION_KEY,
     create_company,
-    invite_manager,
+    invite_member,
     memberships_for_user,
     switch_company,
 )
+from workforce.models import Team
 
 
 def _company_data(membership):
@@ -78,9 +79,17 @@ class MemberListCreateView(APIView):
     def post(self, request):
         serializer = InviteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        membership = invite_manager(
+        data = serializer.validated_data
+        team = None
+        if data.get("team"):
+            team = Team.objects.filter(company=request.company, pk=data["team"]).first()
+            if team is None:
+                return Response({"team": ["Team must belong to this company."]}, status=status.HTTP_400_BAD_REQUEST)
+        membership = invite_member(
             request.company,
-            serializer.validated_data["email"],
-            serializer.validated_data.get("password") or "",
+            data["email"],
+            data.get("password") or "",
+            role=data["role"],
+            team=team,
         )
         return Response(MembershipSerializer(membership).data, status=status.HTTP_201_CREATED)

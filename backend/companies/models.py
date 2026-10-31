@@ -17,6 +17,7 @@ class Membership(models.Model):
     class Role(models.TextChoices):
         OWNER = "owner", "Owner"
         MANAGER = "manager", "Manager"
+        TEAM_LEAD = "team_lead", "Team lead"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

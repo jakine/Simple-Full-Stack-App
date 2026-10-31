@@ -1,22 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client";
+import { ErrorText, PageHeader, styles } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
-import { ErrorText, styles } from "../components/ui";
 
 function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
+  const company = user?.active_company;
 
   useEffect(() => {
-    if (!user?.active_company) return;
+    if (!company) return;
     const until = new Date();
     until.setDate(until.getDate() + 30);
     const expiresBefore = until.toISOString().slice(0, 10);
     Promise.all([
       api("/workers/?page_size=1"),
-      api("/workplaces/?page_size=1"),
+      api("/projects/?page_size=1"),
       api(`/stock-lots/?expires_before=${expiresBefore}&page_size=5`),
     ])
       .then(([workers, workplaces, lots]) => {
@@ -27,9 +28,9 @@ function DashboardPage() {
         });
       })
       .catch((err) => setError(err.message));
-  }, [user?.active_company]);
+  }, [company]);
 
-  if (!user?.active_company) {
+  if (!company) {
     return (
       <div style={styles.card}>
         <h1>Choose a company</h1>
@@ -41,26 +42,28 @@ function DashboardPage() {
 
   return (
     <div style={styles.page}>
-      <h1 style={{ margin: 0 }}>Home</h1>
+      <PageHeader title="Home">
+        {company.name} — crews, contracts, and what is running out.
+      </PageHeader>
       <ErrorText>{error}</ErrorText>
       {stats && (
         <>
           <div style={styles.stats}>
             <div style={styles.stat}>
               <div style={styles.label}>Workers</div>
-              <strong>{stats.workers}</strong>
+              <strong style={{ fontFamily: "var(--font-display)", fontSize: "1.7rem" }}>{stats.workers}</strong>
             </div>
             <div style={styles.stat}>
-              <div style={styles.label}>Contracts</div>
-              <strong>{stats.workplaces}</strong>
+              <div style={styles.label}>Projects</div>
+              <strong style={{ fontFamily: "var(--font-display)", fontSize: "1.7rem" }}>{stats.workplaces}</strong>
             </div>
             <div style={styles.stat}>
               <div style={styles.label}>Lots expiring in 30 days</div>
-              <strong>{stats.expiring.length}</strong>
+              <strong style={{ fontFamily: "var(--font-display)", fontSize: "1.7rem" }}>{stats.expiring.length}</strong>
             </div>
           </div>
           <div style={styles.card}>
-            <h2 style={{ marginTop: 0 }}>Expiring stock</h2>
+            <h2>Expiring stock</h2>
             {stats.expiring.length === 0 ? (
               <p>No lots expire in the next 30 days.</p>
             ) : (

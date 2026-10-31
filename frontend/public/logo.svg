@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="WorkPulse">
+  <rect width="64" height="64" fill="#1e5c52"/>
+  <path
+    fill="none"
+    stroke="#f7f3ea"
+    stroke-width="4.2"
+    stroke-linecap="round"
+    d="M5 34
+       C12 34 14 34 16 32
+       C18.5 20 20.5 18 23 18
+       C25.6 18 27 44 29.2 44
+       C30.6 44 31.3 18 32 18
+       C32.7 18 33.4 44 34.8 44
+       C37 44 38.4 18 41 18
+       C43.5 18 45.5 20 48 32
+       C50 34 52 34 59 34"
+  />
+</svg>
