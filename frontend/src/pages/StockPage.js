@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { api, apiList } from "../api/client";
 import { ErrorText, Field, styles } from "../components/ui";
+import { useRole } from "../context/AuthContext";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
 function StockPage() {
+  const { canManage } = useRole();
   const [types, setTypes] = useState([]);
   const [items, setItems] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -35,7 +37,7 @@ function StockPage() {
       apiList("/locations/"),
       apiList("/stock-lots/"),
       apiList("/stock-movements/"),
-      apiList("/workplaces/"),
+      apiList("/projects/"),
     ]);
     setTypes(typeRows);
     setItems(itemRows);
@@ -66,10 +68,41 @@ function StockPage() {
     <div style={styles.page}>
       <h1 style={{ margin: 0 }}>Stock</h1>
       <p style={{ margin: 0 }}>
-        Stock is received into a depot. Using it at a workplace removes that quantity from the depot.
+        Stock is received into a depot. Using it on a project removes that quantity from the depot.
       </p>
       <ErrorText>{error}</ErrorText>
 
+      {!canManage && (
+        <div style={styles.card}>
+          <h2 style={{ marginTop: 0 }}>Stock on hand</h2>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Item</th>
+                <th style={styles.th}>Location</th>
+                <th style={styles.th}>Quantity</th>
+                <th style={styles.th}>Expires</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lots.map((lot) => (
+                <tr key={lot.id}>
+                  <td style={styles.td}>{lot.item_name}</td>
+                  <td style={styles.td}>{lot.location_name}</td>
+                  <td style={styles.td}>
+                    {lot.quantity} {lot.unit}
+                  </td>
+                  <td style={styles.td}>{lot.expires_on || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {lots.length === 0 && <p>No stock yet.</p>}
+        </div>
+      )}
+
+      {canManage && (
+      <>
       <form
         style={styles.card}
         onSubmit={(event) => {
@@ -262,7 +295,7 @@ function StockPage() {
           );
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Use stock on a contract</h2>
+        <h2 style={{ marginTop: 0 }}>Use stock on a project</h2>
         <p style={{ marginTop: 0 }}>Using stock records a consume movement and takes that quantity off the depot lot.</p>
         <div style={styles.row}>
           <Field label="Lot">
@@ -277,7 +310,7 @@ function StockPage() {
           </Field>
           <Field label="Kind">
             <select style={styles.input} value={movement.kind} onChange={(e) => setMovement({ ...movement, kind: e.target.value })}>
-              <option value="consume">Use on a contract</option>
+              <option value="consume">Use on a project</option>
               <option value="transfer">Move to another depot</option>
               <option value="adjust">Adjust</option>
             </select>
@@ -299,7 +332,7 @@ function StockPage() {
               </select>
             </Field>
           )}
-          <Field label="Contract">
+          <Field label="Project">
             <select
               style={styles.input}
               value={movement.workplace}
@@ -334,6 +367,8 @@ function StockPage() {
           ))}
         </ul>
       </form>
+      </>
+      )}
     </div>
   );
 }

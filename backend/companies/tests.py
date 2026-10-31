@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 
 from companies.models import Membership
 from companies.testing import auth_client, make_membership, make_user
+from workforce.models import Team
 
 User = get_user_model()
 
@@ -119,3 +120,25 @@ class CompanyTenancyTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 409)
+
+    def test_owner_can_invite_a_team_lead_and_link_a_team(self):
+        owner = make_user("boss@example.com")
+        membership = make_membership(owner, "Crew Co")
+        client = auth_client(owner, membership.company)
+        team = Team.objects.create(
+            company=membership.company, number=1, name="Team 1", worker_count=2, lead_note="Mira"
+        )
+        created = client.post(
+            "/api/companies/members/",
+            {
+                "email": "lead@example.com",
+                "password": "Manager-pass-123",
+                "role": "team_lead",
+                "team": team.id,
+            },
+            format="json",
+        )
+        self.assertEqual(created.status_code, 201)
+        self.assertEqual(created.data["role"], Membership.Role.TEAM_LEAD)
+        team.refresh_from_db()
+        self.assertEqual(team.lead_user.email, "lead@example.com")

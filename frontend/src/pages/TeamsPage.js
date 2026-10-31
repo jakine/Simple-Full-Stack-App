@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { api, apiList } from "../api/client";
 import { ErrorText, Field, styles } from "../components/ui";
+import { useRole } from "../context/AuthContext";
 
 const emptyForm = { number: "", name: "", worker_count: "", lead_note: "", lead_user: "" };
 
 function TeamsPage() {
+  const { canManage } = useRole();
   const [teams, setTeams] = useState([]);
   const [members, setMembers] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -68,6 +70,7 @@ function TeamsPage() {
       </p>
       <ErrorText>{error}</ErrorText>
 
+      {canManage && (
       <form onSubmit={saveTeam} style={styles.card}>
         <h2 style={{ marginTop: 0 }}>{editingId ? "Edit team" : "Add team"}</h2>
         <div style={styles.row}>
@@ -131,6 +134,7 @@ function TeamsPage() {
           )}
         </div>
       </form>
+      )}
 
       <div style={styles.card}>
         <table style={styles.table}>
@@ -153,9 +157,11 @@ function TeamsPage() {
                 <td style={styles.td}>{team.lead_note || "—"}</td>
                 <td style={styles.td}>{team.lead_user_email || "—"}</td>
                 <td style={styles.td}>
-                  <button type="button" style={styles.button} onClick={() => editTeam(team)}>
-                    Edit
-                  </button>
+                  {canManage && (
+                    <button type="button" style={styles.button} onClick={() => editTeam(team)}>
+                      Edit
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

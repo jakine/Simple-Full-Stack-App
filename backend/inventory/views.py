@@ -2,8 +2,9 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from companies.permissions import IsCompanyMember
+from companies.permissions import HasCompanyRole
 from companies.viewsets import CompanyScopedViewSet
+from core.services import record_event
 from inventory.models import Location, StockItem, StockLot, StockMovement, StockType
 from inventory.serializers import (
     LocationSerializer,
@@ -73,6 +74,13 @@ class StockLotViewSet(CompanyScopedViewSet):
             note=data.get("note", "") if "note" in data else "",
             user=request.user,
         )
+        record_event(
+            request,
+            "stock.received",
+            lot,
+            project=lot.location.workplace,
+            data={"item": lot.item.name, "quantity": str(data["quantity"]), "location": lot.location.name},
+        )
         output = StockLotSerializer(lot, context={"request": request})
         return Response(output.data, status=status.HTTP_201_CREATED)
 
@@ -83,7 +91,7 @@ class StockMovementViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = [IsAuthenticated, IsCompanyMember]
+    permission_classes = [IsAuthenticated, HasCompanyRole]
     serializer_class = StockMovementSerializer
     queryset = StockMovement.objects.select_related(
         "lot__item",
@@ -116,5 +124,13 @@ class StockMovementViewSet(
             happened_on=data.get("happened_on"),
             note=data.get("note", ""),
             user=request.user,
+        )
+        to_location = movement.to_location
+        record_event(
+            request,
+            f"stock.{movement.kind}",
+            movement,
+            project=movement.workplace or (to_location.workplace if to_location else None),
+            data={"item": lot.item.name, "quantity": str(movement.quantity)},
         )
         return Response(self.get_serializer(movement).data, status=status.HTTP_201_CREATED)

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, apiList } from "../api/client";
 import { ErrorText, Field, styles } from "../components/ui";
+import { useRole } from "../context/AuthContext";
 
 const emptyForm = {
   name: "",
@@ -11,6 +12,7 @@ const emptyForm = {
 };
 
 function WorkersPage() {
+  const { canManage } = useRole();
   const [workers, setWorkers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [workerTypes, setWorkerTypes] = useState([]);
@@ -66,6 +68,8 @@ function WorkersPage() {
       </p>
       <ErrorText>{error}</ErrorText>
 
+      {canManage && (
+      <>
       <form
         style={styles.card}
         onSubmit={async (event) => {
@@ -132,6 +136,8 @@ function WorkersPage() {
           </button>
         </div>
       </form>
+      </>
+      )}
 
       <div style={styles.card}>
         <table style={styles.table}>

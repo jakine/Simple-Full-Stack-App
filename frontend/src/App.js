@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import Layout from "./components/Layout";
 import CompanyPage from "./pages/CompanyPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -7,16 +8,21 @@ import LoginPage from "./pages/LoginPage";
 import StockPage from "./pages/StockPage";
 import TeamsPage from "./pages/TeamsPage";
 import WorkersPage from "./pages/WorkersPage";
-import WorkplacePage from "./pages/WorkplacePage";
-import WorkplacesPage from "./pages/WorkplacesPage";
+import BoardPage from "./pages/BoardPage";
+import ProjectPage from "./pages/ProjectPage";
+import ProjectsPage from "./pages/ProjectsPage";
+import SheetPage from "./pages/SheetPage";
+import TimelinePage from "./pages/TimelinePage";
 import WorkTypesPage from "./pages/WorkTypesPage";
+import WorkflowSettingsPage from "./pages/WorkflowSettingsPage";
 import ReportsPage from "./pages/ReportsPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
@@ -32,14 +38,20 @@ function App() {
             <Route path="/teams" element={<TeamsPage />} />
             <Route path="/workers" element={<WorkersPage />} />
             <Route path="/work-types" element={<WorkTypesPage />} />
-            <Route path="/contracts" element={<WorkplacesPage />} />
-            <Route path="/contracts/:id" element={<WorkplacePage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:id" element={<ProjectPage />} />
+            <Route path="/board" element={<BoardPage />} />
+            <Route path="/sheet" element={<SheetPage />} />
+            <Route path="/timeline" element={<TimelinePage />} />
+            <Route path="/contracts" element={<Navigate to="/projects" replace />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/stock" element={<StockPage />} />
+            <Route path="/settings/workflow" element={<WorkflowSettingsPage />} />
           </Route>
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
