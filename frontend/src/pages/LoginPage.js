@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../api/auth";
+import { login, register } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
 
 function LoginPage() {
@@ -11,6 +11,7 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -18,7 +19,7 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      const user = await login(email, password);
+      const user = creating ? await register(email, password) : await login(email, password);
       setUser(user);
       navigate("/dashboard");
     } catch (err) {
@@ -31,7 +32,7 @@ function LoginPage() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Sign in</h2>
+        <h2 style={styles.title}>{creating ? "Create account" : "Sign in"}</h2>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label}>Email</label>
@@ -57,7 +58,17 @@ function LoginPage() {
           {error && <p style={styles.error}>{error}</p>}
 
           <button type="submit" disabled={loading} style={styles.button}>
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Please wait..." : creating ? "Create account" : "Sign in"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setCreating((value) => !value);
+              setError("");
+            }}
+            style={{ background: "none", border: "none", color: "#01696f", cursor: "pointer", padding: 0 }}
+          >
+            {creating ? "Already have an account? Sign in" : "Need an account? Create one"}
           </button>
         </form>
       </div>
